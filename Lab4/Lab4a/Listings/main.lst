@@ -1,0 +1,104 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         
+    2 00000000         
+    3 00000000                 AREA             |.text|, CODE, READONLY, ALIGN=
+2
+    4 00000000                 THUMB
+    5 00000000                 EXPORT           Start
+    6 00000000                 IMPORT           PortF_Init
+    7 00000000                 IMPORT           LEDs_on
+    8 00000000         
+    9 00000000         
+   10 00000000         ;Be sure to import your created I/O functions
+   11 00000000         
+   12 00000000         
+   13 00000000         
+   14 00000000         Start
+   15 00000000 F7FF FFFE       BL               PortF_Init
+   16 00000004         loop
+   17 00000004         ;Used by Part 1 to prove PortF_Init is correct
+   18 00000004 F7FF FFFE       BL               LEDs_on     ;Comment out for la
+                                                            ter parts
+   19 00000008         
+   20 00000008         
+   21 00000008         
+   22 00000008         ; Part 3
+   23 00000008         ; Call delay
+   24 00000008         ; Read the state of the buttons
+   25 00000008         ; None -> Call toggle
+   26 00000008         ; SW1 -> Call blue_on
+   27 00000008         ; SW2 -> Call red_on
+   28 00000008         ; Both -> Call toggle, blue_on, red_on
+   29 00000008         
+   30 00000008         
+   31 00000008         
+   32 00000008 E7FC            B                loop
+   33 0000000A         
+   34 0000000A 00 00           ALIGN
+   35 0000000C                 END
+Command Line: --debug --xref --diag_suppress=9931,A1950W --cpu=Cortex-M4 --fpu=
+SoftVFP --depend=.\objects\main.d -o.\objects\main.o -IC:\Keil_v5\ARM\PACK\ARM\
+Cortex_DFP\1.1.0\Device\ARMCM4\Include -IC:\Keil_v5\ARM\PACK\ARM\Cortex_DFP\1.1
+.0\Device\ARM\ARMCM4\Include --predefine="__EVAL SETA 1" --predefine="__UVISION
+_VERSION SETA 541" --predefine="ARMCM4 SETA 1" --list=.\listings\main.lst main.
+s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+.text 00000000
+
+Symbol: .text
+   Definitions
+      At line 3 in file main.s
+   Uses
+      None
+Comment: .text unused
+Start 00000000
+
+Symbol: Start
+   Definitions
+      At line 14 in file main.s
+   Uses
+      At line 5 in file main.s
+Comment: Start used once
+loop 00000004
+
+Symbol: loop
+   Definitions
+      At line 16 in file main.s
+   Uses
+      At line 32 in file main.s
+Comment: loop used once
+3 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+External symbols
+
+LEDs_on 00000000
+
+Symbol: LEDs_on
+   Definitions
+      At line 7 in file main.s
+   Uses
+      At line 18 in file main.s
+Comment: LEDs_on used once
+PortF_Init 00000000
+
+Symbol: PortF_Init
+   Definitions
+      At line 6 in file main.s
+   Uses
+      At line 15 in file main.s
+Comment: PortF_Init used once
+2 symbols
+338 symbols in table
