@@ -5,7 +5,7 @@
 #include "tm4c123gh6pm.h"
 
 // Change this number to the current part of the lab you are working on
-#define LAB_PART 2
+#define LAB_PART 3
 
 int main(){
 	PortF_Init();
