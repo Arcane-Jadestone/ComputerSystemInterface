@@ -46,7 +46,7 @@
 #define SYSCTL_RCC2_OSCSRC2_MO  0x00000000  // MOSC
 
 // Change for 50MHz
-#define SYSDIV2	24 // Default is 16MHz clock
+#define SYSDIV2	24 // Default is 16MHz clock (24 default | 7 for 50M)
 
 
 // configure the system to get its clock from the PLL
