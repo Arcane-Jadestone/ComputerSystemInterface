@@ -7,12 +7,13 @@ volatile uint32_t g_handler_calls;
 
 //Initialize Systick
 void SysTick_Init(void){
-	NVIC_ST_CTRL_R
+	NVIC_ST_CTRL_R = 0;  // Stops sysTick
+	NVIC_ST_CTRL_R  = NVIC_ST_CTRL_R | 0x05; // Resarts sysTick
 }
 
 
-// Configure SysTick to generate an interrupt every 20ms
-// Assume 16 MHz clock
+// Configure SysTick to generate an interrupt every 20ms 
+// Assume 16 MHz clock or a period of  1/(16*10^6) s = 62.5 ns
 void SysTick_Init_Interrupts(void){
 	g_handler_calls = 0; //Initialize counter as 0
 
@@ -24,7 +25,7 @@ static void SysTick_Delay1ms_16MHz(void){
 	//Use the Systick Timer to generate a 1ms delay
 	
 	// Choose the number of clock ticks to wait
-	//NVIC_ST_RELOAD_R = ;
+	NVIC_ST_RELOAD_R = (16000)-1; 
 	
 	NVIC_ST_CURRENT_R = 0; // Any value written to write clears it
 	while((NVIC_ST_CTRL_R&0x00010000)==0){} // Wait for count flag
@@ -34,8 +35,11 @@ static void SysTick_Delay1ms_16MHz(void){
 // Write code to generate a 2 sec delay
 // Your code should call SysTick_Delay1ms()
 void SysTick_Delay2s_16MHz(void){
-	SysTick_Delay1ms_16MHz();
-	SysTick_Delay1ms_16MHz();
+	int i;
+	for (i = 0; i < 2000; i++){
+		SysTick_Delay1ms_16MHz();
+	}
+	
 } 
 
 
