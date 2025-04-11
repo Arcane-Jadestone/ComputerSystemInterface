@@ -1,0 +1,586 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ; Credit: Based on software by Valvano
+    2 00000000         
+    3 00000000 400253FC 
+                       GPIO_PORTF_DATA_R
+                               EQU              0x400253FC
+    4 00000000 40025400 
+                       GPIO_PORTF_DIR_R
+                               EQU              0x40025400
+    5 00000000 40025420 
+                       GPIO_PORTF_AFSEL_R
+                               EQU              0x40025420
+    6 00000000 40025510 
+                       GPIO_PORTF_PUR_R
+                               EQU              0x40025510
+    7 00000000 4002551C 
+                       GPIO_PORTF_DEN_R
+                               EQU              0x4002551C
+    8 00000000 40025520 
+                       GPIO_PORTF_LOCK_R
+                               EQU              0x40025520
+    9 00000000 40025524 
+                       GPIO_PORTF_CR_R
+                               EQU              0x40025524
+   10 00000000 40025528 
+                       GPIO_PORTF_AMSEL_R
+                               EQU              0x40025528
+   11 00000000 4002552C 
+                       GPIO_PORTF_PCTL_R
+                               EQU              0x4002552C
+   12 00000000 4C4F434B 
+                       GPIO_LOCK_KEY
+                               EQU              0x4C4F434B  ; Unlocks the GPIO_
+                                                            CR register
+   13 00000000 400FE108 
+                       SYSCTL_RCGC2_R
+                               EQU              0x400FE108
+   14 00000000 00000020 
+                       SYSCTL_RCGC2_GPIOF
+                               EQU              0x00000020  ; port F Clock Gati
+                                                            ng Control
+   15 00000000 00000002 
+                       RED     EQU              0x02
+   16 00000000 00000004 
+                       BLUE    EQU              0x04
+   17 00000000 00000008 
+                       GREEN   EQU              0x08
+   18 00000000 40025008 
+                       PF1     EQU              0x40025008
+   19 00000000 40025010 
+                       PF2     EQU              0x40025010
+   20 00000000 40025020 
+                       PF3     EQU              0x40025020
+   21 00000000         
+   22 00000000                 AREA             |.text|, CODE, READONLY, ALIGN=
+2
+   23 00000000                 THUMB
+   24 00000000                 EXPORT           PortF_Init
+   25 00000000                 EXPORT           delay
+   26 00000000                 EXPORT           delay_dim
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   27 00000000                 EXPORT           blue_led_on
+   28 00000000                 EXPORT           blue_led_off
+   29 00000000                 EXPORT           red_led_on
+   30 00000000                 EXPORT           red_led_off
+   31 00000000                 EXPORT           green_led_on
+   32 00000000                 EXPORT           green_led_off
+   33 00000000         
+   34 00000000         PortF_Init
+   35 00000000 4927            LDR              R1, =SYSCTL_RCGC2_R ; 1) activa
+                                                            te clock for Port F
+                                                            
+   36 00000002 6808            LDR              R0, [R1]
+   37 00000004 F040 0020       ORR              R0, R0, #0x20 ; set bit 5 to tu
+                                                            rn on clock
+   38 00000008 6008            STR              R0, [R1]
+   39 0000000A BF00            NOP
+   40 0000000C BF00            NOP                          ; allow time for cl
+                                                            ock to finish
+   41 0000000E 4925            LDR              R1, =GPIO_PORTF_LOCK_R ; 2) unl
+                                                            ock the lock regist
+                                                            er
+   42 00000010 4825            LDR              R0, =0x4C4F434B ; unlock GPIO P
+                                                            ort F Commit Regist
+                                                            er
+   43 00000012 6008            STR              R0, [R1]
+   44 00000014 4925            LDR              R1, =GPIO_PORTF_CR_R ; enable c
+                                                            ommit for Port F
+   45 00000016 F04F 00FF       MOV              R0, #0xFF   ; 1 means allow acc
+                                                            ess
+   46 0000001A 6008            STR              R0, [R1]
+   47 0000001C 4924            LDR              R1, =GPIO_PORTF_AMSEL_R ; 3) di
+                                                            sable analog functi
+                                                            onality
+   48 0000001E F04F 0000       MOV              R0, #0      ; 0 means analog is
+                                                             off
+   49 00000022 6008            STR              R0, [R1]
+   50 00000024 4923            LDR              R1, =GPIO_PORTF_PCTL_R ; 4) con
+                                                            figure as GPIO
+   51 00000026 F04F 0000       MOV              R0, #0x00000000 ; 0 means confi
+                                                            gure Port F as GPIO
+                                                            
+   52 0000002A 6008            STR              R0, [R1]
+   53 0000002C 4922            LDR              R1, =GPIO_PORTF_DIR_R ; 5) set 
+                                                            direction register
+   54 0000002E 6808            LDR              R0, [R1]
+   55 00000030 F04F 000E       MOV              R0, #0x0E
+   56 00000034 6008            STR              R0, [R1]
+   57 00000036 4921            LDR              R1, =GPIO_PORTF_AFSEL_R ; 6) re
+                                                            gular port function
+                                                            
+   58 00000038 F04F 0000       MOV              R0, #0      ; 0 means disable a
+                                                            lternate function 
+   59 0000003C 6008            STR              R0, [R1]
+   60 0000003E 4920            LDR              R1, =GPIO_PORTF_PUR_R ; pull-up
+                                                             resistors for PF4,
+                                                            PF0
+   61 00000040 F04F 0011       MOV              R0, #0x11   ; enable weak pull-
+                                                            up on PF0 and PF4
+   62 00000044 6008            STR              R0, [R1]
+
+
+
+ARM Macro Assembler    Page 3 
+
+
+   63 00000046 491F            LDR              R1, =GPIO_PORTF_DEN_R ; 7) enab
+                                                            le Port F digital p
+                                                            ort
+   64 00000048 F04F 00FF       MOV              R0, #0xFF   ; 1 means enable di
+                                                            gital I/O
+   65 0000004C 6008            STR              R0, [R1]
+   66 0000004E 4770            BX               LR
+   67 00000050         
+   68 00000050         ;------------blue_led_on------
+   69 00000050         ; Turn the blue LED on
+   70 00000050         ; Input: none
+   71 00000050         ; Output: none
+   72 00000050         blue_led_on
+   73 00000050 491D            LDR              R1, =PF2
+   74 00000052 F04F 0004       MOV              R0, #BLUE   ; R0 = BLUE (blue L
+                                                            ED on)
+   75 00000056 6008            STR              R0, [R1]    ; turn the blue LED
+                                                             on
+   76 00000058 4770            BX               LR
+   77 0000005A         
+   78 0000005A         ;------------blue_led_off-----
+   79 0000005A         ; Turn the blue LED off
+   80 0000005A         ; Input: none
+   81 0000005A         ; Output: none
+   82 0000005A         blue_led_off
+   83 0000005A 491B            LDR              R1, =PF2
+   84 0000005C F04F 0000       MOV              R0, #0      ; R0 = 0
+   85 00000060 6008            STR              R0, [R1]    ; turn the blue LED
+                                                             OFF
+   86 00000062 4770            BX               LR
+   87 00000064         
+   88 00000064         ;------------red_led_on-------
+   89 00000064         ; Turn the red LED on
+   90 00000064         ; Input: none
+   91 00000064         ; Output: none
+   92 00000064         red_led_on
+   93 00000064 4919            LDR              R1, =PF1
+   94 00000066 F04F 0002       MOV              R0, #RED    ; R0 = RED (red LED
+                                                             on)
+   95 0000006A 6008            STR              R0, [R1]    ; turn the red LED 
+                                                            on
+   96 0000006C 4770            BX               LR
+   97 0000006E         
+   98 0000006E         ;------------red_led_off------
+   99 0000006E         ; Turn the red LED off
+  100 0000006E         ; Input: none
+  101 0000006E         ; Output: none
+  102 0000006E         red_led_off
+  103 0000006E 4917            LDR              R1, =PF1
+  104 00000070 F04F 0000       MOV              R0, #0      ; R0 = 0
+  105 00000074 6008            STR              R0, [R1]    ; turn the red LED 
+                                                            OFF
+  106 00000076 4770            BX               LR
+  107 00000078         
+  108 00000078         ;------------green_led_on------
+  109 00000078         ; Turn the green LED on
+  110 00000078         ; Input: none
+  111 00000078         ; Output: none
+  112 00000078         green_led_on
+
+
+
+ARM Macro Assembler    Page 4 
+
+
+  113 00000078 4915            LDR              R1, =PF3
+  114 0000007A F04F 0008       MOV              R0, #GREEN  ; R0 = GREEN (green
+                                                             LED on)
+  115 0000007E 6008            STR              R0, [R1]    ; turn the green LE
+                                                            D on
+  116 00000080 4770            BX               LR
+  117 00000082         
+  118 00000082         ;------------green_led_off-----
+  119 00000082         ; Turn the green LED off
+  120 00000082         ; Input: none
+  121 00000082         ; Output: none
+  122 00000082         green_led_off
+  123 00000082 4913            LDR              R1, =PF3
+  124 00000084 F04F 0000       MOV              R0, #0      ; R0 = 0
+  125 00000088 6008            STR              R0, [R1]    ; turn the green LE
+                                                            D OFF
+  126 0000008A 4770            BX               LR
+  127 0000008C         
+  128 0000008C         
+  129 0000008C         ;------------delay------------
+  130 0000008C         ; Delay function for testing, which delays about 3*count
+                        cycles.
+  131 0000008C         ; Input: R0 count
+  132 0000008C         ; Output: none
+  133 0000008C 00516155 
+                       ONESEC  EQU              5333333     ; approximately 1s 
+                                                            delay at ~16 MHz cl
+                                                            ock
+  134 0000008C 00145855 
+                       QUARTERSEC
+                               EQU              1333333     ; approximately 0.2
+                                                            5s delay at ~16 MHz
+                                                             clock
+  135 0000008C 001046AA 
+                       FIFTHSEC
+                               EQU              1066666     ; approximately 0.2
+                                                            s delay at ~16 MHz 
+                                                            clock
+  136 0000008C         delay
+  137 0000008C 4811            LDR              R0, =QUARTERSEC
+  138 0000008E         delay_loop
+  139 0000008E 1E40            SUBS             R0, R0, #1  ; R0 = R0 - 1 (coun
+                                                            t = count - 1)
+  140 00000090 D1FD            BNE              delay_loop  ; if count (R0) != 
+                                                            0, skip to 'delay'
+  141 00000092 4770            BX               LR          ; return 
+  142 00000094         
+  143 00000094         delay_dim
+  144 00000094 F248 4092       MOV              R0, #0x8492
+  145 00000098         delay_dim_loop
+  146 00000098 1E40            SUBS             R0, R0, #1
+  147 0000009A D1F8            BNE              delay_loop
+  148 0000009C 4770            BX               LR
+  149 0000009E         
+  150 0000009E 00 00           ALIGN                        ; make sure the end
+                                                             of this section is
+                                                             aligned
+  151 000000A0                 END                          ; end of file
+              400FE108 
+
+
+
+ARM Macro Assembler    Page 5 
+
+
+              40025520 
+              4C4F434B 
+              40025524 
+              40025528 
+              4002552C 
+              40025400 
+              40025420 
+              40025510 
+              4002551C 
+              40025010 
+              40025008 
+              40025020 
+              00145855 
+Command Line: --debug --xref --diag_suppress=9931,A1950W --cpu=Cortex-M4 --fpu=
+SoftVFP --depend=.\objects\portf.d -o.\objects\portf.o -IC:\Keil_v5\ARM\PACK\AR
+M\Cortex_DFP\1.1.0\Device\ARMCM4\Include -IC:\Keil_v5\ARM\PACK\ARM\Cortex_DFP\1
+.1.0\Device\ARM\ARMCM4\Include --predefine="__EVAL SETA 1" --predefine="__UVISI
+ON_VERSION SETA 541" --predefine="ARMCM4 SETA 1" --list=.\listings\portf.lst Po
+rtF.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+.text 00000000
+
+Symbol: .text
+   Definitions
+      At line 22 in file PortF.s
+   Uses
+      None
+Comment: .text unused
+PortF_Init 00000000
+
+Symbol: PortF_Init
+   Definitions
+      At line 34 in file PortF.s
+   Uses
+      At line 24 in file PortF.s
+Comment: PortF_Init used once
+blue_led_off 0000005A
+
+Symbol: blue_led_off
+   Definitions
+      At line 82 in file PortF.s
+   Uses
+      At line 28 in file PortF.s
+Comment: blue_led_off used once
+blue_led_on 00000050
+
+Symbol: blue_led_on
+   Definitions
+      At line 72 in file PortF.s
+   Uses
+      At line 27 in file PortF.s
+Comment: blue_led_on used once
+delay 0000008C
+
+Symbol: delay
+   Definitions
+      At line 136 in file PortF.s
+   Uses
+      At line 25 in file PortF.s
+Comment: delay used once
+delay_dim 00000094
+
+Symbol: delay_dim
+   Definitions
+      At line 143 in file PortF.s
+   Uses
+      At line 26 in file PortF.s
+Comment: delay_dim used once
+delay_dim_loop 00000098
+
+Symbol: delay_dim_loop
+   Definitions
+      At line 145 in file PortF.s
+   Uses
+      None
+Comment: delay_dim_loop unused
+delay_loop 0000008E
+
+Symbol: delay_loop
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+Relocatable symbols
+
+   Definitions
+      At line 138 in file PortF.s
+   Uses
+      At line 140 in file PortF.s
+      At line 147 in file PortF.s
+
+green_led_off 00000082
+
+Symbol: green_led_off
+   Definitions
+      At line 122 in file PortF.s
+   Uses
+      At line 32 in file PortF.s
+Comment: green_led_off used once
+green_led_on 00000078
+
+Symbol: green_led_on
+   Definitions
+      At line 112 in file PortF.s
+   Uses
+      At line 31 in file PortF.s
+Comment: green_led_on used once
+red_led_off 0000006E
+
+Symbol: red_led_off
+   Definitions
+      At line 102 in file PortF.s
+   Uses
+      At line 30 in file PortF.s
+Comment: red_led_off used once
+red_led_on 00000064
+
+Symbol: red_led_on
+   Definitions
+      At line 92 in file PortF.s
+   Uses
+      At line 29 in file PortF.s
+Comment: red_led_on used once
+12 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Absolute symbols
+
+BLUE 00000004
+
+Symbol: BLUE
+   Definitions
+      At line 16 in file PortF.s
+   Uses
+      At line 74 in file PortF.s
+Comment: BLUE used once
+FIFTHSEC 001046AA
+
+Symbol: FIFTHSEC
+   Definitions
+      At line 135 in file PortF.s
+   Uses
+      None
+Comment: FIFTHSEC unused
+GPIO_LOCK_KEY 4C4F434B
+
+Symbol: GPIO_LOCK_KEY
+   Definitions
+      At line 12 in file PortF.s
+   Uses
+      None
+Comment: GPIO_LOCK_KEY unused
+GPIO_PORTF_AFSEL_R 40025420
+
+Symbol: GPIO_PORTF_AFSEL_R
+   Definitions
+      At line 5 in file PortF.s
+   Uses
+      At line 57 in file PortF.s
+Comment: GPIO_PORTF_AFSEL_R used once
+GPIO_PORTF_AMSEL_R 40025528
+
+Symbol: GPIO_PORTF_AMSEL_R
+   Definitions
+      At line 10 in file PortF.s
+   Uses
+      At line 47 in file PortF.s
+Comment: GPIO_PORTF_AMSEL_R used once
+GPIO_PORTF_CR_R 40025524
+
+Symbol: GPIO_PORTF_CR_R
+   Definitions
+      At line 9 in file PortF.s
+   Uses
+      At line 44 in file PortF.s
+Comment: GPIO_PORTF_CR_R used once
+GPIO_PORTF_DATA_R 400253FC
+
+Symbol: GPIO_PORTF_DATA_R
+   Definitions
+      At line 3 in file PortF.s
+   Uses
+      None
+Comment: GPIO_PORTF_DATA_R unused
+GPIO_PORTF_DEN_R 4002551C
+
+Symbol: GPIO_PORTF_DEN_R
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+Absolute symbols
+
+   Definitions
+      At line 7 in file PortF.s
+   Uses
+      At line 63 in file PortF.s
+Comment: GPIO_PORTF_DEN_R used once
+GPIO_PORTF_DIR_R 40025400
+
+Symbol: GPIO_PORTF_DIR_R
+   Definitions
+      At line 4 in file PortF.s
+   Uses
+      At line 53 in file PortF.s
+Comment: GPIO_PORTF_DIR_R used once
+GPIO_PORTF_LOCK_R 40025520
+
+Symbol: GPIO_PORTF_LOCK_R
+   Definitions
+      At line 8 in file PortF.s
+   Uses
+      At line 41 in file PortF.s
+Comment: GPIO_PORTF_LOCK_R used once
+GPIO_PORTF_PCTL_R 4002552C
+
+Symbol: GPIO_PORTF_PCTL_R
+   Definitions
+      At line 11 in file PortF.s
+   Uses
+      At line 50 in file PortF.s
+Comment: GPIO_PORTF_PCTL_R used once
+GPIO_PORTF_PUR_R 40025510
+
+Symbol: GPIO_PORTF_PUR_R
+   Definitions
+      At line 6 in file PortF.s
+   Uses
+      At line 60 in file PortF.s
+Comment: GPIO_PORTF_PUR_R used once
+GREEN 00000008
+
+Symbol: GREEN
+   Definitions
+      At line 17 in file PortF.s
+   Uses
+      At line 114 in file PortF.s
+Comment: GREEN used once
+ONESEC 00516155
+
+Symbol: ONESEC
+   Definitions
+      At line 133 in file PortF.s
+   Uses
+      None
+Comment: ONESEC unused
+PF1 40025008
+
+Symbol: PF1
+   Definitions
+      At line 18 in file PortF.s
+   Uses
+
+
+
+ARM Macro Assembler    Page 3 Alphabetic symbol ordering
+Absolute symbols
+
+      At line 93 in file PortF.s
+      At line 103 in file PortF.s
+
+PF2 40025010
+
+Symbol: PF2
+   Definitions
+      At line 19 in file PortF.s
+   Uses
+      At line 73 in file PortF.s
+      At line 83 in file PortF.s
+
+PF3 40025020
+
+Symbol: PF3
+   Definitions
+      At line 20 in file PortF.s
+   Uses
+      At line 113 in file PortF.s
+      At line 123 in file PortF.s
+
+QUARTERSEC 00145855
+
+Symbol: QUARTERSEC
+   Definitions
+      At line 134 in file PortF.s
+   Uses
+      At line 137 in file PortF.s
+Comment: QUARTERSEC used once
+RED 00000002
+
+Symbol: RED
+   Definitions
+      At line 15 in file PortF.s
+   Uses
+      At line 94 in file PortF.s
+Comment: RED used once
+SYSCTL_RCGC2_GPIOF 00000020
+
+Symbol: SYSCTL_RCGC2_GPIOF
+   Definitions
+      At line 14 in file PortF.s
+   Uses
+      None
+Comment: SYSCTL_RCGC2_GPIOF unused
+SYSCTL_RCGC2_R 400FE108
+
+Symbol: SYSCTL_RCGC2_R
+   Definitions
+      At line 13 in file PortF.s
+   Uses
+      At line 35 in file PortF.s
+Comment: SYSCTL_RCGC2_R used once
+21 symbols
+368 symbols in table

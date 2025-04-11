@@ -1,0 +1,59 @@
+	Part 1:
+Operation | Result (R) | Condition Codes (N Z C V)
+  =X+Y    | 0x0000 0005| C
+  =X-Y    | 0x0000 0000| ZC
+  =X+Z    | 0x8000 0007| NV
+  =Y-Z    | 0x7fff fffe| CV
+  =Y+Z    | 0x7fff fffc| C
+
+
+X = 0x0000 0008
+Y = 0xFFFF FFFD
+Z = 0x7FFF FFFF
+
+
+Flags
+N = Negative
+Z = Zero
+C = Cary (Unsigned)
+V = Overflow (Signed)
+
+
+___________________________________________________________________________
+
+	Part 2:
+
+;	First run:
+	MOV R7, #0x20000000
+;Then:
+	LDR R6, [R7]
+;R6 =A07C F8DF  | Reading from 0x2000003 reading backwards to 0x20000000
+	LDRH R6, [R7]
+;R6 =0000 F8DF  | Reads first half of [R7] into R6 (Remainder being read as 00 | Unsigned)
+	LDRB R6, [R7]
+;R6 =0000 00DF  | Reads first byte of [R7] into R6 (Remainder being read as 00 | Unsigned)
+	LDRSH R6, [R7]
+;R6 =FFFF F8DF  | Reads first half of [R7] into R6 (Remainder being read as FF | Signed)
+	LDRSB R6,[R7]
+;R6 =FFFF FFDF  | Reads first byte of [R7] into R6 (Remainder being read as FF | Signed)
+
+;Signed means that if the furthest read bit is a '1' the the unfilled spaces will be set to 'F'
+
+;First run:
+	MOV R7, #0x20000000
+	ADD R7, #2
+; Must use add because 0x20000002 cannot be represented as
+; an immediate value
+;Then:
+	LDR R6, [R7]
+;R6 = 0xF8DF A07C
+	LDRH R6, [R7]
+;R6 = 0x0000 A07C
+	LDRB R6, [R7]
+;R6 = 0x0000 007C
+	LDRSH R6, [R7]
+;R6 = 0xFFFF A07C
+	LDRSB R6,[R7]
+;R6 = 0x0000 007c
+
+;See above section for explinations
