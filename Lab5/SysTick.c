@@ -16,6 +16,11 @@ void SysTick_Init(void){
 // Assume 16 MHz clock or a period of  1/(16*10^6) s = 62.5 ns
 void SysTick_Init_Interrupts(void){
 	g_handler_calls = 0; //Initialize counter as 0
+	
+	NVIC_ST_CTRL_R=0; //disables SysTick for setup
+	NVIC_ST_RELOAD_R = (16000000*0.2)-1; //20ms interval
+	NVIC_ST_CURRENT_R = 0; //clear current value
+	NVIC_ST_CTRL_R = 0x07; //enable systick
 
 }
 
@@ -69,4 +74,12 @@ void SysTick_Delay2s_50MHz(void){
 void SysTick_Handler(void){
 	
 	g_handler_calls++;
+
+	if (g_handler_calls % 50 == 0){
+		GPIO_PORTF_DATA_R ^= 0x4; //toggles blue at 1ms
+	}
+	
+	if (g_handler_calls % 100 == 0){
+		GPIO_PORTF_DATA_R ^= 0x2;
+	}
 }
