@@ -1,7 +1,4 @@
-./objects/uartstdio.o: utils\uartstdio.c \
-  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdbool.h \
-  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdint.h \
-  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdarg.h utils\..\inc\hw_ints.h \
+./objects/uartstdio.o: utils\uartstdio.c utils\..\inc\hw_ints.h \
   utils\..\inc\hw_memmap.h utils\..\inc\hw_types.h \
   utils\..\inc\hw_uart.h utils\..\driverlib\debug.h \
   utils\..\driverlib\interrupt.h utils\..\driverlib\rom.h \

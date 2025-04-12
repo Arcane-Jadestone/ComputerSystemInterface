@@ -1,7 +1,5 @@
-./objects/uart.o: driverlib\uart.c \
-  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdbool.h \
-  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdint.h \
-  driverlib\..\inc\hw_ints.h driverlib\..\inc\hw_memmap.h \
-  driverlib\..\inc\hw_sysctl.h driverlib\..\inc\hw_types.h \
-  driverlib\..\inc\hw_uart.h driverlib\..\driverlib\debug.h \
-  driverlib\..\driverlib\interrupt.h driverlib\..\driverlib\uart.h
+./objects/uart.o: driverlib\uart.c driverlib\..\inc\hw_ints.h \
+  driverlib\..\inc\hw_memmap.h driverlib\..\inc\hw_sysctl.h \
+  driverlib\..\inc\hw_types.h driverlib\..\inc\hw_uart.h \
+  driverlib\..\driverlib\debug.h driverlib\..\driverlib\interrupt.h \
+  driverlib\..\driverlib\uart.h
