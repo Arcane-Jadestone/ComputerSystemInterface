@@ -108,6 +108,26 @@ void PrintTime(void){
 		// Be careful not to mangle the value of g_seconds
 		uint32_t hr,min,sec;
 
+		hr = g_seconds / 3600;
+		min = (g_seconds % 3600) / 60;
+		sec = g_seconds % 60;
+
+		myPutChar('\r');
+	
+		myPutChar('0' + hr / 10); //tens place
+    		myPutChar('0' + hr % 10); //ones
+
+		myPutChar(':');
+
+		myPutChar('0' + min % 10);
+		myPutChar('0' + min / 10);
+
+		myPutChar(':');
+
+		myPutChar('0' + sec % 10);
+		myPutChar('0' + sec / 10);		
+		
+
 		// g_seconds contains the current time in seconds
 	
 		// Look into carriage returns (\r) vs. new lines (\n) to understand how to
