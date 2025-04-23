@@ -97,6 +97,8 @@ int main(void)
 // Change this function so that time is displayed as a 24-hour clock (hh:mm:ss)
 // Each new call should overwrite the previous time in the terminal rather than
 //   printing each new time on the next line.
+
+
 void PrintTime(void){
 	
 		// Comment out this line when you write your own implementation
@@ -111,6 +113,7 @@ void PrintTime(void){
 		// Look into carriage returns (\r) vs. new lines (\n) to understand how to
 		//   get the new time to overwrite the old time in the display.
 }
+
 
 // Should block until the user presses a key and then returns that value
 // Returns a newline until it has been correctly implemented
@@ -140,16 +143,16 @@ void myPutChar(unsigned char c){
 
  // Function Given in Lab 6 slides
 char myGetChar(void){							//UART_InChar: Wait for input then return it
-	while((UART1_FR_R & 0x0010) != 0);
-	return ((char) (UART1_DR_R & 0xFF));
+	while((UART0_FR_R & 0x0010) != 0);
+	return ((char) (UART0_DR_R & 0xFF));
 }
 void myPutChar(unsigned char data){ 			//UART_OutChar:Wait for empty buffer, Then output
-	while((UART1_FR_R & 0x0020) != 0);
-	UART1_DR_R = data;
+	while((UART0_FR_R & 0x0020) != 0);
+	UART0_DR_R = data;
 }
 char UART_InCharNonBlocking(void){  //UART_InCharNonBlocking: See if input = 0 or N/A
-	if ((UART1_FR_R & UART_FR_RXFE) == 0){
-		return ((char) (UART1_DR_R & 0xFF));
+	if ((UART0_FR_R & UART_FR_RXFE) == 0){
+		return ((char) (UART0_DR_R & 0xFF));
 	} else {
 		return 0;
 	}
