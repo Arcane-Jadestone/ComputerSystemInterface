@@ -111,7 +111,7 @@ uint32_t Get_TempC(void){
 	result = 1746;
 	
 	// Convert raw ADC value to millivolts
-	
+	result = Convert_Raw_To_V(result);
 	
 	// The hardcoded raw value of 1746 should convert to roughly 1407 mV.  Use the debugger to confirm 
 	//   Convert_Raw_To_V() has returned the correct value.
@@ -144,7 +144,8 @@ uint32_t Convert_Raw_To_V(uint32_t raw){
 	
 	// Convert raw ADC value to mV.
 	// voltage = max_possible_voltage * ADC_result / max_possible_ADC_value
-	result = raw;
+	
+	result = 3.3 * (raw / 4096);
 	
 	
 	return result;
