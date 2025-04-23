@@ -119,13 +119,13 @@ void PrintTime(void){
 
 		myPutChar(':');
 
-		myPutChar('0' + min % 10);
 		myPutChar('0' + min / 10);
+		myPutChar('0' + min % 10);
 
 		myPutChar(':');
 
-		myPutChar('0' + sec % 10);
-		myPutChar('0' + sec / 10);		
+		myPutChar('0' + sec / 10);
+		myPutChar('0' + sec % 10);		
 		
 
 		// g_seconds contains the current time in seconds
