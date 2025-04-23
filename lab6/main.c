@@ -34,7 +34,7 @@ uint32_t ToTime(char* buff, uint32_t len);
 void SysTickInit(void);
 
 // Student Written Functions
-unsigned char myGetChar(void);
+char myGetChar(void);
 void myPutChar(unsigned char c);
 void PrintTime(void);
 void InitConsole(void);
@@ -58,14 +58,14 @@ int main(void)
 			UARTprintf("Press 0 or 1 to select mode of operation:\n");
 			UARTprintf("0) Start at 0\n");
 			UARTprintf("1) Specify Time\n");
-			choice = myGetChar();
+			choice = myGetChar();	
 			if(choice != '0' && choice != '1'){
 				UARTprintf("\nInvalid input %c!\n\n",choice);
 			}
 		}
 		
-		UARTprintf("\n0You have chosen option %c! \nPart 2 complete!\n\n",choice);
-	
+		UARTprintf("\nYou have chosen option %c! \nPart 2 complete!\n\n",choice);
+		
 		if(choice == '1'){
 			// Enter a number of seconds
 			UARTprintf("\nEnter the desired time in seconds.\n");
@@ -91,6 +91,7 @@ int main(void)
 }
 //***************************************************************************
 //NOTE: Fill in The Following Functions
+// Student: You gave us some of the functions...
 //***************************************************************************
 
 // Change this function so that time is displayed as a 24-hour clock (hh:mm:ss)
@@ -113,21 +114,20 @@ void PrintTime(void){
 
 // Should block until the user presses a key and then returns that value
 // Returns a newline until it has been correctly implemented
+/*
 unsigned char myGetChar(void){
 		char retchar = '\n';
 	
-
-		// REMOVE THIS LINE AFTER PART 1
-		while(1){} // Prevents repeated error messages
-
 		// Wait for the proper FIFO flag to be 0
-	
+		
 		// Return the received value
     //retchar = ;
 		return retchar;
 }
+*/
 
 // Should output the given char c to the terminal
+/*
 void myPutChar(unsigned char c){
 	
 		// Wait for the proper Transmit FIFO flag to be 0
@@ -135,6 +135,26 @@ void myPutChar(unsigned char c){
 		// Write the character to the data register 
 		//UART0_DR_R = ;
 }
+*/
+
+
+ // Function Given in Lab 6 slides
+char myGetChar(void){							//UART_InChar: Wait for input then return it
+	while((UART1_FR_R & 0x0010) != 0);
+	return ((char) (UART1_DR_R & 0xFF));
+}
+void myPutChar(unsigned char data){ 			//UART_OutChar:Wait for empty buffer, Then output
+	while((UART1_FR_R & 0x0020) != 0);
+	UART1_DR_R = data;
+}
+char UART_InCharNonBlocking(void){  //UART_InCharNonBlocking: See if input = 0 or N/A
+	if ((UART1_FR_R & UART_FR_RXFE) == 0){
+		return ((char) (UART1_DR_R & 0xFF));
+	} else {
+		return 0;
+	}
+}
+
 
 // Initialize UART0
 // Assumes 16 MHz clock, creates 9600 baud rate
