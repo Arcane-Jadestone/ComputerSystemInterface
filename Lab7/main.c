@@ -66,8 +66,14 @@ void ADC0_Init(void)
     GPIO_PORTE_AFSEL_R X= 0xXX; // 3) enable alternate function on PE4
     GPIO_PORTE_DEN_R X= 0xXX;  // 4) disable digital I/O on PE4
     GPIO_PORTE_AMSEL_R X= 0xXX; // 5) enable analog functionality on PE4
-	  
 		*/
+	
+	SYSCTL_RCGCGPIO_R |= 0x10;    // 1) activate clock for Port E and allow time to stabilize
+	while((SYSCTL_RCGCGPIO_R & 0x10)==0){}	
+  GPIO_PORTE_DIR_R &= 0xEF;  // 2) make PE4 input
+  GPIO_PORTE_AFSEL_R |= 0x10; // 3) enable alternate function on PE4
+  GPIO_PORTE_DEN_R &= 0xEF;  // 4) disable digital I/O on PE4
+  GPIO_PORTE_AMSEL_R |= 0x10; // 5) enable analog functionality on PE4
 	SYSCTL_RCGCADC_R |= 0x0001;   // 6) activate ADC0 and allow time to stabilize
 	while((SYSCTL_RCGCADC_R&0x1)==0){}
 	
@@ -75,7 +81,7 @@ void ADC0_Init(void)
 	/****************************************** 
 	 * Uncomment and complete this line
 	 ******************************************/
-  //ADC0_PC_R ;								  // 7) configure for 500K samples/sec
+  ADC0_PC_R = 0x5 ;								  // 7) configure for 500K samples/sec
 	
 		
   ADC0_SSPRI_R = 0x0123;        // 8) Sequencer 3 is highest priority
@@ -96,10 +102,13 @@ uint32_t Get_TempC(void){
 	
 	// Read raw result from ADC0
 	// Try averaging multiple readings together to produce a single output
-	
+	for (i = 0; i < 64; i++){
+		result += ADC0_In();
+	}
+	result /= 64;
 	
 	// For debugging, hard code the ADC output as 1746.  This will ultimately produce a temperature of 42C.
-	//result = 1746;
+	result = 1746;
 	
 	// Convert raw ADC value to millivolts
 	
@@ -170,6 +179,7 @@ void Print_Temps (uint32_t TempC)
 	UARTprintf("Temperature = %3d*C\n", TempC);	
 	
 }
+
 
 
 
