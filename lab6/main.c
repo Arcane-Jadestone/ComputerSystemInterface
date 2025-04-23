@@ -102,7 +102,7 @@ int main(void)
 void PrintTime(void){
 	
 		// Comment out this line when you write your own implementation
-		UARTprintf("%i\n",g_seconds);
+		//UARTprintf("%i\n",g_seconds);
 		
 		// Use myPutChar(char c) to output each character in the desired format
 		// Be careful not to mangle the value of g_seconds
