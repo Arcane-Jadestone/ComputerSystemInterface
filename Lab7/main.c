@@ -46,7 +46,23 @@ int main(void)
     while(1)
     {	
         Print_Temps (Get_TempC());
-				Delay_100ms(); // Included to make console output less frequent
+	Delay_100ms(); // Included to make console output less frequent
+
+	/*
+		keystroke = myGetChar();
+  
+		uint32_t tempC = Get_TempC();
+    		uint32_t tempF = Convert_C_To_F(tempC);
+  
+  		if (keystroke = 'C' || 'c'){
+			UARTprintf("Temperature = %3d*C\n", TempC);
+    		}
+
+      		if (keystroke = 'F' || 'f'){
+			UARTprintf("Temperature = %3d*F\n", TempF);
+ 		}
+
+ 	*/
     }
 }
 
