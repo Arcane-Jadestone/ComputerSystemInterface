@@ -47,7 +47,7 @@ int main(void)
     {	
         Print_Temps (Get_TempC());
 				Delay_100ms(); // Included to make console output less frequent
-	    /*
+	    
 		keystroke = myGetChar();
   
 		uint32_t tempC = Get_TempC();
@@ -61,7 +61,7 @@ int main(void)
 			UARTprintf("Temperature = %3d*F\n", TempF);
  		}
 
- 	*/
+ 	
     }
 }
 
