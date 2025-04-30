@@ -174,10 +174,12 @@ uint32_t Convert_C_To_F( uint32_t TempC)
 // Should later also convert to and print in Fahrenheit
 void Print_Temps (uint32_t TempC)
 {
-	
+	uint32_t TempF = 0;
 	// UARTprintf() works in exactly the same way as normal printf()
-	UARTprintf("Temperature = %3d*C\n", TempC);	
+	UARTprintf("Temperature = %3d*C\n", TempC);
 	
+	TempF = Convert_C_To_F(TempC); //converts to fahrenheit
+	UARTprintf("Temperature = %3d*F\n", TempF);
 }
 
 
