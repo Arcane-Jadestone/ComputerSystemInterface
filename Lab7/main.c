@@ -165,7 +165,7 @@ uint32_t Convert_C_To_F( uint32_t TempC)
 	uint32_t TempF;
 	
 	// complete this equation
-	TempF=TempC;
+	TempF= ((TempC*9)/5) + 32;
 
 	return TempF;
 }
