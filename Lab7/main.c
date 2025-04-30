@@ -46,9 +46,8 @@ int main(void)
     while(1)
     {	
         Print_Temps (Get_TempC());
-	Delay_100ms(); // Included to make console output less frequent
-
-	/*
+				Delay_100ms(); // Included to make console output less frequent
+	    /*
 		keystroke = myGetChar();
   
 		uint32_t tempC = Get_TempC();
@@ -97,16 +96,17 @@ void ADC0_Init(void)
 	/****************************************** 
 	 * Uncomment and complete this line
 	 ******************************************/
-  ADC0_PC_R = 0x5 ;								  // 7) configure for 500K samples/sec
+  ADC0_PC_R &= ~0xF ;								  // 7) configure for 500K samples/sec
+	ADC0_PC_R |= 0x5;
 	
 		
   ADC0_SSPRI_R = 0x0123;        // 8) Sequencer 3 is highest priority
   ADC0_ACTSS_R &= ~0x0008;      // 9) disable sample sequencer 3
   ADC0_EMUX_R &= ~0xF000;       // 10) seq3 is software trigger
-		
-	ADC0_SSMUX3_R = 9;            // 11) Select channel 9 corresponding to PE4.
-  ADC0_SSCTL3_R = 0x06;         // 12) Set IE0 and END0 (do NOT set TS0).
-			
+	ADC0_SSMUX3_R &= ~0x00F;		
+	ADC0_SSMUX3_R += 9;            // 11) Select channel 9 corresponding to PE4.
+  ADC0_SSCTL3_R = 0x0006;         // 12) Set IE0 and END0 (do NOT set TS0).
+       //ADC0_IM_R &= ~0x0008   // Disable SS3 Interupt
   ADC0_ACTSS_R |= 0x0008;       // 13) enable sample sequencer 3 before we sample.
 }
 
@@ -114,7 +114,7 @@ void ADC0_Init(void)
 // You should call ADC0_In, convertRawToVolts(), and convertVoltsToCelsius()
 uint32_t Get_TempC(void){
 	int i;
-	uint32_t result=0;
+	uint32_t result = 0;
 	
 	// Read raw result from ADC0
 	// Try averaging multiple readings together to produce a single output
@@ -124,14 +124,13 @@ uint32_t Get_TempC(void){
 	result /= 64;
 	
 	// For debugging, hard code the ADC output as 1746.  This will ultimately produce a temperature of 42C.
-	result = 1746;
-	
+	//result = 1756;
 	// Convert raw ADC value to millivolts
-	
+	result = Convert_Raw_To_V(result);
 	
 	// The hardcoded raw value of 1746 should convert to roughly 1407 mV.  Use the debugger to confirm 
 	//   Convert_Raw_To_V() has returned the correct value.
-	
+	result = Convert_V_To_C(result);
 	
 	// Convert voltage to Celsius
 	
@@ -141,36 +140,40 @@ uint32_t Get_TempC(void){
 }
 
 // Take a reading from the ADC0 Sample Sequencer 3 and return the raw value
-uint32_t ADC0_In(void){
-	uint32_t v=0;	
-	
-	// 1) initiate SS3
 
-  // 2) wait for conversion done
+//------------ADC0_InSeq3------------
 
-  // 3) read result
+// Busy-wait analog to digital conversion
 
-  // 4) acknowledge completion
-		
-	return v;
+// Input: none
+
+// Output: 12-bit result of ADC conversion
+
+uint32_t ADC0_In(void){  uint32_t result;
+
+  ADC0_PSSI_R = 0x0008;            // 1) initiate SS3
+
+  while((ADC0_RIS_R&0x08)==0){};   // 2) wait for conversion done
+
+  result = ADC0_SSFIFO3_R&0xFFF;   // 3) read result
+
+  ADC0_ISC_R = 0x0008;             // 4) acknowledge completion
+
+  return result;
+
 }
 
 uint32_t Convert_Raw_To_V(uint32_t raw){
-	uint32_t result;
-	
 	// Convert raw ADC value to mV.
 	// voltage = max_possible_voltage * ADC_result / max_possible_ADC_value
-	result = raw;
-	
+	uint32_t result = (3300 * raw) / 4095;
 	
 	return result;
 }
 
 // You are not required to edit this.
 uint32_t Convert_V_To_C(uint32_t v){
-	uint32_t result;
-	
-	result = 100 - ((v * 45) / 1000);
+	uint32_t result = 100 - ((v * 45) / 1000);
 	
 	return result;
 }
