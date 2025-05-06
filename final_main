@@ -1,0 +1,110 @@
+// The following UART signals are configured only for displaying console
+// messages for this example.  These are not required for operation of the
+// ADC.
+// - UART0 peripheral
+// - GPIO Port A peripheral (for UART0 pins)
+// - UART0RX - PA0
+// - UART0TX - PA1
+//
+//
+// NOTE: The internal temperature sensor is not calibrated.  This example
+// just takes the raw temperature sensor sample and converts it using the
+// equation found in the datasheet.
+//
+//*****************************************************************************
+
+
+//Includes
+#include <stdbool.h>
+#include <string.h>
+#include <stdint.h>
+#include "inc/hw_memmap.h"
+#include "driverlib/adc.h"
+#include "driverlib/gpio.h"
+#include "driverlib/pin_map.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/uart.h"
+#include "utils/uartstdio.h"		// TI provided UART I/O function library
+#include "inc/tm4c123gh6pm.h"
+
+char Keypad_GetKey(void);
+
+int main(){
+		SYSCTL_RCGCGPIO_R |= 0x01;           // enable clock Port A
+    while((SYSCTL_PRGPIO_R & 0x01)==0);  // wait for Port A ready
+
+    GPIO_PORTA_DIR_R = 0x0F;             // PA0-3 rows as output, PA4-7 cols as input
+    GPIO_PORTA_DEN_R = 0xFF;             // Enable digital on PA0-7
+    GPIO_PORTA_PUR_R = 0xF0;             // Enable pull-ups on PA4-7
+    GPIO_PORTA_AFSEL_R = 0;
+    GPIO_PORTA_AMSEL_R = 0;
+	
+		/* code for servo, not sure if it works
+			
+		SYSCTL_RCGCGPIO_R |= 0x02;         // enables clock to Port B
+    SYSCTL_RCGCTIMER_R |= 0x02;        // enables clock to Timer1
+
+    GPIO_PORTB_AFSEL_R |= 0x40;        // Enable alt func on PB6
+    GPIO_PORTB_PCTL_R = (GPIO_PORTB_PCTL_R & ~0x0F000000) | 0x07000000; // Timer1A on PB6
+    GPIO_PORTB_DEN_R |= 0x40;
+    GPIO_PORTB_DIR_R |= 0x40;
+
+    TIMER1_CTL_R = 0;                  // Disable Timer1A
+    TIMER1_CFG_R = 0x00000004;         // 16-bit timer
+    TIMER1_TAMR_R = 0x0000000A;        // PWM mode, periodic timer
+    TIMER1_TAILR_R = 1600000 - 1;      // 20 ms period (16 MHz clock)
+    TIMER1_TAMATCHR_R = 120000;        // Default duty (~1.5 ms) — center
+    TIMER1_CTL_R |= 0x00000001;        // Enable Timer1A
+		*/
+		
+		const char pw[] = {'1','2','3','4'}; //pw abbreviated for password
+    char entered[4];
+    int index = 0;
+		
+		while(1){
+        char key = Keypad_GetKey();
+			
+        if (key) {
+            entered[index++] = key;
+
+            if(index == 4){
+                if(entered[0] == pw[0] && entered[1] == pw[1] &&
+                   entered[2] == pw[2] && entered[3] == pw[3]){
+                    UARTprintf("\nCode correct! Unlocking...\n");
+                    //Servo_SetAngle(90);  // unlock position
+                } else {
+                    UARTprintf("\nIncorrect code. Try again.\n");
+                    //Servo_SetAngle(0);   // lock position
+                }
+                index = 0; //reset password if wrong
+            }
+        }
+    }
+}
+		
+		
+
+char Keypad_GetKey(void){
+    const char keymap[4][4] = {
+        {'1','2','3','A'},
+        {'4','5','6','B'},
+        {'7','8','9','C'},
+        {'*','0','#','D'}
+    };
+	
+		//the keypad sets a button to low when pressed, this loop scans through and finds where it is and returns the char
+    for(int row = 0; row < 4; row++){
+        GPIO_PORTA_DIR_R = 0x0F;               // port 0-3 outputs
+        GPIO_PORTA_DATA_R = ~(1 << row);       // sets one row low leaves other on high
+
+        for(int col = 0; col < 4; col++){
+            if((GPIO_PORTA_DATA_R & (1 << (col+4))) == 0){ //+4 indicated the port 4-7 for column output
+                while((GPIO_PORTA_DATA_R & (1 << (col+4))) == 0); // waits for release then returns
+                return keymap[row][col];
+            }
+        }
+    }
+
+    return 0;
+}
+//EOF
