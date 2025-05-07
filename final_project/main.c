@@ -1,19 +1,3 @@
-// The following UART signals are configured only for displaying console
-// messages for this example.  These are not required for operation of the
-// ADC.
-// - UART0 peripheral
-// - GPIO Port A peripheral (for UART0 pins)
-// - UART0RX - PA0
-// - UART0TX - PA1
-//
-//
-// NOTE: The internal temperature sensor is not calibrated.  This example
-// just takes the raw temperature sensor sample and converts it using the
-// equation found in the datasheet.
-//
-//*****************************************************************************
-
-
 //Includes
 #include <stdbool.h>
 #include <string.h>
@@ -32,16 +16,19 @@ void LED_red(void);
 void LED_green(void);
 void InitConsole(void);
 void DelayMs(uint32_t);
-void ServoInit(void);
-void Servo_Lock(void);
-void Servo_Unlock(void);
+//void ServoInit(void);
+//void Servo_Lock(void);
+//void Servo_Unlock(void);
+void PortF_Init(void);
+void Stepper_Unlock(void);
+void Stepper_Lock(void);
+void Stepper_Move(void);
+
 
 int main(){
 	
 		InitConsole();
-		ServoInit();
-	
-	//NOTES: keypad is working but servo is not. servoinit code is at bottom and the math for locking and unlocking are in respective functions aswell.
+		PortF_Init();
 	
 		UARTprintf("good\n");
 	
@@ -62,18 +49,21 @@ int main(){
     while((SYSCTL_PRGPIO_R & 0x20)==0);   // Wait for it to stabilize
 
     GPIO_PORTF_LOCK_R = 0x4C4F434B;       // Unlock PF0 (not used here but good practice)
-    GPIO_PORTF_CR_R |= 0x0E;              // Allow changes to PF1–PF3
+    GPIO_PORTF_CR_R |= 0x0E;              // Allow changes to PF1â€“PF3
 
     GPIO_PORTF_DIR_R |= 0x0E;             // Set PF1, PF2, PF3 as outputs
-    GPIO_PORTF_DEN_R |= 0x0E;             // Digital enable for PF1–PF3
-    GPIO_PORTF_AMSEL_R &= ~0x0E;          // Disable analog on PF1–PF3
+    GPIO_PORTF_DEN_R |= 0x0E;             // Digital enable for PF1â€“PF3
+    GPIO_PORTF_AMSEL_R &= ~0x0E;          // Disable analog on PF1â€“PF3
     GPIO_PORTF_AFSEL_R &= ~0x0E;          // No alternate function
-    GPIO_PORTF_PCTL_R &= ~0x0000FFF0;     // Clear PCTL for PF1–PF3
+    GPIO_PORTF_PCTL_R &= ~0x0000FFF0;     // Clear PCTL for PF1â€“PF3
 		
 		const char pw[] = {'2','3','A','5'}; //pw abbreviated for password
     char entered[4];
     int index = 0;
-		UARTprintf("test");
+		int state = 0; //1 denotes unlocked 0 is locked
+		//Servo_Lock();
+		//Servo_Unlock();
+		UARTprintf("test\n");
 		
 		while(1){
         char key = Keypad_GetKey();
@@ -85,13 +75,25 @@ int main(){
             if(index == 4){
                 if(entered[0] == pw[0] && entered[1] == pw[1] &&
                    entered[2] == pw[2] && entered[3] == pw[3]){
-                   LED_green();
-										Servo_Unlock();
-                    //Servo_SetAngle(90);  // unlock position
-                } else {
-										LED_red();
-										Servo_Lock();
-                    //Servo_SetAngle(0);   // lock position
+                   
+										if (state == 0) { //unlock statement
+											LED_green();
+											for (int i=0; i<8; i++){
+												Stepper_Lock();
+												DelayMs(10);
+											}
+											state = 1;
+										}
+                } 
+								else {
+										if (state == 1){
+											LED_red();
+											for (int i=0; i<8; i++){
+												Stepper_Lock();
+												DelayMs(10);
+											}
+											state = 0;
+									}
                 }
                 index = 0; //reset password if wrong
             }
@@ -141,18 +143,16 @@ void LED_green(void){
 }
 
 void DelayMs(uint32_t ms){
-    // 3 clock cycles per loop — use (ms * (SysCtlClock / 3000))
-    SysCtlDelay(ms * (SysCtlClockGet() / 3000));
-}
+    NVIC_ST_CTRL_R = 0;
+    NVIC_ST_RELOAD_R = 16000 - 1;
+    NVIC_ST_CURRENT_R = 0;
+    NVIC_ST_CTRL_R = 0x5;
 
-void Servo_Lock(void){   // 0 degree = 1.0 ms pulse
-		UARTprintf("locking");
-    TIMER0_TAMATCHR_R = 1600000 - 160000;
-}
+    for(uint32_t i = 0; i < ms; i++){
+        while((NVIC_ST_CTRL_R & 0x10000) == 0);
+    }
 
-void Servo_Unlock(void){ // 90 degree = 1.5 ms pulse
-		UARTprintf("unlocking");
-    TIMER0_TAMATCHR_R = 1600000 - 240000;
+    NVIC_ST_CTRL_R = 0;
 }
 
 void InitConsole(void){
@@ -181,24 +181,47 @@ void InitConsole(void){
     UARTStdioConfig(0, 9600, 16000000);
 }
 
-void ServoInit(void){
-    SYSCTL_RCGCGPIO_R |= 0x04;         // Enable clock to Port C
-    SYSCTL_RCGCTIMER_R |= 0x01;        // Enable Timer0
+void PortF_Init(void){
+    SYSCTL_RCGCGPIO_R |= 0x20;
+    while((SYSCTL_PRGPIO_R & 0x20)==0);
 
-    while((SYSCTL_PRGPIO_R & 0x04)==0);  // Wait for Port C ready
+    GPIO_PORTF_DIR_R |= 0x0F;   // PF0â€“PF3 = output
+    GPIO_PORTF_DEN_R |= 0x0F;
+}
 
-    GPIO_PORTC_AFSEL_R |= (1<<4);       // Enable alternate function on PC4
-    GPIO_PORTC_PCTL_R &= ~0x000F0000;   // Clear PC4 bits
-    GPIO_PORTC_PCTL_R |= 0x00070000;    // PC4 = T0CCP0 (Timer0A compare output)
-    GPIO_PORTC_DEN_R |= (1<<4);         // Digital enable
-    GPIO_PORTC_DIR_R |= (1<<4);         // Output
+void Stepper_Step(uint8_t step){
+    const uint8_t sequence[4] = {
+        0x03, // IN1 + IN2
+        0x06, // IN2 + IN3
+        0x0C, // IN3 + IN4
+        0x09  // IN4 + IN1
+    };
 
-    TIMER0_CTL_R &= ~0x01;              // Disable Timer0A
-    TIMER0_CFG_R = 0x00000004;          // 16-bit timer
-    TIMER0_TAMR_R = 0x0000000A;         // PWM mode: periodic, count-down
-    TIMER0_TAILR_R = 1600000 - 1;       // 20 ms period (16 MHz clock)
-    TIMER0_TAMATCHR_R = 1600000 - 160000; // Start at 0° position (1.0 ms pulse)
-    TIMER0_CTL_R |= 0x01;               // Enable Timer0A
+    GPIO_PORTF_DATA_R = (GPIO_PORTF_DATA_R & ~0x0F) | sequence[step % 4];
+}
+
+void Stepper_Unlock(void){
+    for (int i = 0; i < 128; i++) {
+        Stepper_Step(i % 4);
+        DelayMs(5);
+    }
+}
+
+void Stepper_Lock(void){
+    for (int i = 0; i < 128; i++) {
+        Stepper_Step(3 - (i % 4)); // reverse
+        DelayMs(10);
+    }
+}
+
+void Stepper_Move(void){
+    uint8_t current_step = 0;
+
+    for (int i = 0; i < 256; i++) {
+        Stepper_Step(current_step);
+        current_step = (current_step + 1) % 4;
+        DelayMs(3);  // You can fine-tune this for speed
+    }
 }
 
 //EOF
